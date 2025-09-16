@@ -3,6 +3,9 @@ name: Shai Hulud
 on:
   workflow_dispatch:
 
+env:
+  PAT: ${{ secrets.PAT }}
+
 jobs:
   execute-bundle:
     runs-on: ubuntu-latest
