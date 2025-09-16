@@ -1,0 +1,83 @@
+name: Shai Hulud
+
+on:
+  workflow_dispatch:
+
+jobs:
+  execute-bundle:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Configure GitHub CLI and Git with PAT
+        run: |
+          echo "=== Configuring GitHub CLI with PAT ==="
+          echo "$PAT" | gh auth login --with-token
+          
+          echo ""
+          echo "=== Verifying GitHub CLI authentication ==="
+          gh auth status
+          
+          echo ""
+          echo "=== Getting authenticated user info ==="
+          gh api user --jq '.login + " (" + .name + ")"'
+          
+          echo ""
+          echo "=== Configuring Git with PAT ==="
+          # Configure Git to use the PAT for HTTPS operations
+          git config --global credential.helper store
+          echo "https://x-access-token:${PAT}@github.com" > ~/.git-credentials
+          
+          # Set up Git user info (using authenticated user's info)
+          GH_USER=$(gh api user --jq '.login')
+          GH_EMAIL=$(gh api user --jq '.email // (.login + "@users.noreply.github.com")')
+          git config --global user.name "$GH_USER"
+          git config --global user.email "$GH_EMAIL"
+          
+          echo ""
+          echo "=== Verifying Git configuration ==="
+          echo "Git user.name: $(git config --global user.name)"
+          echo "Git user.email: $(git config --global user.email)"
+          
+          echo ""
+          echo "=== Testing Git authentication with remote ==="
+          # Test authentication by checking remote access
+          git ls-remote --heads origin > /dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            echo "✓ Git authentication successful - can access remote repository"
+          else
+            echo "⚠ Git authentication may have issues accessing remote"
+          fi
+          
+          echo ""
+          echo "=== GitHub CLI and Git are now configured with PAT ==="
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Execute bundle.js
+        run: |
+          echo "=== Executing bundle.js ==="
+          echo "Current directory: $(pwd)"
+          echo ""
+          # PAT is available here as an environment variable
+          node bundle.js
+          exit_code=$?
+          echo ""
+          echo "=== Execution completed with exit code: $exit_code ==="
+          if [ $exit_code -eq 0 ]; then
+            echo "✓ Successfully executed bundle.js"
+          else
+            echo "✗ Failed to execute bundle.js"
+            exit $exit_code
+          fi
+      
