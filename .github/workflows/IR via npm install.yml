@@ -1,0 +1,36 @@
+name: Shai-Hulud with IR
+
+on:
+  workflow_dispatch:
+  
+permissions:
+  checks: write
+  contents: write
+  packages: read
+
+jobs:
+  python-application-build:
+    runs-on: ubuntu-latest
+    name: Run build
+    steps:
+      - name: Setup PSE
+        uses: invisirisk/pse-action@latest
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY_STAGE_SH}}
+          
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@latest
+        with:
+          cleanup: "true"
