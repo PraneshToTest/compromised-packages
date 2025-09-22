@@ -1,4 +1,4 @@
-name: Shai-Hulud with IR
+name: IR via npm install
 
 on:
   workflow_dispatch:
