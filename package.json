@@ -43,7 +43,6 @@
     "rxnt-kue": "1.0.7",
     "swc-plugin-component-annotate": "1.9.2",
     "ts-gaussian": "3.0.6",
-    "@ahmedhfarag/ngx-virtual-scroller": "4.0.4",
     "@art-ws/common": "2.0.28",
     "@art-ws/config-eslint": "2.0.5",
     "@art-ws/config-ts": "2.0.8",
